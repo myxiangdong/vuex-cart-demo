@@ -11,7 +11,7 @@
       <el-table-column
         width="55">
         <template v-slot:header>
-          <el-checkbox size="mini">
+          <el-checkbox v-model="checkedAll" size="mini">
           </el-checkbox>
         </template>
         <!--
@@ -23,6 +23,7 @@
           <el-checkbox
             size="mini"
             :value="scope.row.isChecked"
+            @change="updateProductChecked({id: scope.row.id, checked: $event})"
           >
           </el-checkbox>
         </template>
@@ -37,9 +38,11 @@
       </el-table-column>
       <el-table-column
         prop="count"
+        v-slot="scope"
         label="数量">
         <template>
-          <el-input-number size="mini"></el-input-number>
+          <el-input-number :value="scope.row.count"
+            @change="updateProduct({id: scope.row.id, count: $event})" size="mini"></el-input-number>
         </template>
       </el-table-column>
       <el-table-column
@@ -47,31 +50,42 @@
         label="小计">
       </el-table-column>
       <el-table-column
+        v-slot="scope"
         label="操作">
         <template>
-          <el-button size="mini">删除</el-button>
+          <el-button @click="deleteProduct(scope.row.id)" size="mini">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
     <div>
-      <p>已选 <span>xxx</span> 件商品，总价：<span>xxx</span></p>
+      <p>已选 <span>{{ checkedCount }}</span> 件商品，总价：<span>{{ checkedPrice }}</span></p>
       <el-button type="danger">结算</el-button>
     </div>
   </div>
 </template>
 
 <script>
-
+import { mapGetters, mapMutations, mapState } from 'vuex'
 export default {
   name: 'Cart',
-  data () {
-    return {
-      cartProducts: [
-        { id: 1, title: 'iPad Pro', price: 500.01 },
-        { id: 2, title: 'H&M T-Shirt White', price: 10.99 },
-        { id: 3, title: 'Charli XCX - Sucker CD', price: 19.99 }
-      ]
+  computed: {
+    ...mapState('cart', ['cartProducts']),
+    ...mapGetters('cart', ['checkedCount', 'checkedPrice']),
+    checkedAll: {
+      get () {
+        return this.cartProducts.every(item => item.isChecked)
+      },
+      set (value) {
+        this.updateAllProductChecked(value)
+      }
     }
+  },
+  methods: {
+    ...mapMutations('cart', [
+      'updateAllProductChecked',
+      'updateProductChecked',
+      'updateProduct',
+      'deleteProduct'])
   }
 }
 </script>
